@@ -9,7 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var port int
+var (
+	port int
+)
 
 func init() {
 	flag.IntVar(&port, "port", 3000, "service port")
@@ -19,6 +21,8 @@ func init() {
 func main() {
 	app := gin.Default()
 	routes.Build(app)
+
+	go routes.HandleBroadcasts()
 
 	err := app.Run(fmt.Sprintf(":%d", port))
 	if err != nil {

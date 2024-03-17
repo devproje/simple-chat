@@ -1,8 +1,7 @@
 package routes
 
 import (
-	"encoding/json"
-
+	"fmt"
 	"github.com/devproje/plog/log"
 	"github.com/devproje/simple-chat/model"
 	"github.com/gin-gonic/gin"
@@ -15,35 +14,49 @@ func ws(ctx *gin.Context) {
 		log.Errorln("Failed to upgrade to WebSocket:", err)
 		return
 	}
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err = conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
+
+	socket := &model.User{Sock: conn, Name: ""}
+	clients[socket] = true
+	log.Infof("connection established to chat server with addr: %s\n", conn.RemoteAddr().String())
 
 	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			log.Errorln(err)
-		}
-
 		var recv model.MessageData
-		json.Unmarshal(msg, &recv)
-
-		var data = model.MessageData{
-			Type:    "recv_message",
-			Payload: recv.Payload,
-		}
-
-		raw, err := json.Marshal(&data)
+		err = conn.ReadJSON(&recv)
 		if err != nil {
-			log.Errorln(err)
-			return
+			delete(clients, socket)
+			break
 		}
 
-		switch data.Type {
-		case "new_message":
-			log.Debugln(raw)
-			err := conn.WriteMessage(websocket.TextMessage, []byte(raw))
-			if err != nil {
-				log.Errorln(err)
-				return
+		broadcast <- recv
+	}
+}
+
+func HandleBroadcasts() {
+	for {
+		recv := <-broadcast
+
+		for client := range clients {
+			switch recv.Type {
+			case "set_nickname":
+				client.Name = recv.Payload
+				err := client.Sock.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s has joined the chat room!", recv.Payload)))
+				if err != nil {
+					_ = client.Sock.Close()
+					delete(clients, client)
+				}
+			case "new_message":
+				fmt.Println(client.Name)
+				err := client.Sock.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s: %s", client.Name, recv.Payload)))
+				if err != nil {
+					_ = client.Sock.Close()
+					delete(clients, client)
+				}
 			}
 		}
 	}
