@@ -2,16 +2,13 @@ package routes
 
 import (
 	"github.com/devproje/simple-chat/model"
-	"net/http"
-	"sync"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 var (
-	mutex     sync.Mutex
-	clients   = make(map[*model.User]bool)
+	clients   = make(map[*websocket.Conn]*model.User)
 	broadcast = make(chan model.MessageData)
 	upgrader  = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {

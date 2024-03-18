@@ -11,52 +11,44 @@ import (
 func ws(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		log.Errorln("Failed to upgrade to WebSocket:", err)
+		log.Errorln(err)
 		return
 	}
-	defer func(conn *websocket.Conn) {
-		err = conn.Close()
-		if err != nil {
 
-		}
-	}(conn)
-
-	socket := &model.User{Sock: conn, Name: ""}
-	clients[socket] = true
-	log.Infof("connection established to chat server with addr: %s\n", conn.RemoteAddr().String())
+	client := &model.User{Sock: conn}
+	clients[conn] = client
 
 	for {
+		var msg string
 		var recv model.MessageData
 		err = conn.ReadJSON(&recv)
 		if err != nil {
-			delete(clients, socket)
+			delete(clients, conn)
 			break
+		}
+
+		switch recv.Type {
+		case "new_message":
+			msg = fmt.Sprintf("%s: %s", client.Name, recv.Payload)
+			recv.Payload = msg
+		case "set_username":
+			client.Name = recv.Payload
+			msg = fmt.Sprintf("%s joined the chat.", clients[conn].Name)
+			recv.Payload = msg
 		}
 
 		broadcast <- recv
 	}
 }
 
-func HandleBroadcasts() {
+func HandleConnections() {
 	for {
 		recv := <-broadcast
-
 		for client := range clients {
-			switch recv.Type {
-			case "set_nickname":
-				client.Name = recv.Payload
-				err := client.Sock.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s has joined the chat room!", recv.Payload)))
-				if err != nil {
-					_ = client.Sock.Close()
-					delete(clients, client)
-				}
-			case "new_message":
-				fmt.Println(client.Name)
-				err := client.Sock.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s: %s", client.Name, recv.Payload)))
-				if err != nil {
-					_ = client.Sock.Close()
-					delete(clients, client)
-				}
+			err := client.WriteMessage(websocket.TextMessage, []byte(recv.Payload))
+			if err != nil {
+				_ = client.Close()
+				delete(clients, client)
 			}
 		}
 	}

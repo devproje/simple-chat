@@ -21,8 +21,7 @@ func init() {
 func main() {
 	app := gin.Default()
 	routes.Build(app)
-
-	go routes.HandleBroadcasts()
+	go routes.HandleConnections()
 
 	err := app.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
