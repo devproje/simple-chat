@@ -23,7 +23,15 @@ func ws(ctx *gin.Context) {
 		var recv model.MessageData
 		err = conn.ReadJSON(&recv)
 		if err != nil {
+			if client.Name != "" {
+				broadcast <- model.MessageData{
+					Payload: fmt.Sprintf("%s left the chat.", client.Name),
+				}
+			}
+
+			mutex.Lock()
 			delete(clients, conn)
+			mutex.Unlock()
 			break
 		}
 
@@ -48,7 +56,9 @@ func HandleConnections() {
 			err := client.WriteMessage(websocket.TextMessage, []byte(recv.Payload))
 			if err != nil {
 				_ = client.Close()
+				mutex.Lock()
 				delete(clients, client)
+				mutex.Unlock()
 			}
 		}
 	}
