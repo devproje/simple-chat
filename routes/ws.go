@@ -2,6 +2,8 @@ package routes
 
 import (
 	"github.com/devproje/plog/log"
+	"github.com/devproje/simple-chat/config"
+	"github.com/devproje/simple-chat/controller"
 	"github.com/devproje/simple-chat/model"
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +24,7 @@ func ws(ctx *gin.Context) {
 		if err != nil {
 			if client.Name != "" {
 				broadcast <- model.MessageData{
-					Type:    "left_user",
+					Type:    model.LeftUser,
 					Payload: client.Name,
 				}
 			}
@@ -34,9 +36,9 @@ func ws(ctx *gin.Context) {
 		}
 
 		switch recv.Type {
-		case "new_message":
+		case model.NewMessage:
 			recv.Author = client.Name
-		case "set_username":
+		case model.SetUsername:
 			client.Name = recv.Payload
 			recv.Payload = client.Name
 		}
@@ -55,6 +57,14 @@ func HandleConnections() {
 				mutex.Lock()
 				delete(clients, client)
 				mutex.Unlock()
+			}
+
+			if config.Load().Logging {
+				controller.Logging(&model.Log{
+					Type:    recv.Type.ToString(),
+					Author:  clients[client].Name,
+					Content: recv.Payload,
+				})
 			}
 		}
 	}

@@ -1,0 +1,11 @@
+{
+    "logging": false,
+    "database": {
+        "clusters": [],
+        "keyspace": "",
+        "credential": {
+            "username": "",
+            "password": ""
+        }
+    }
+}

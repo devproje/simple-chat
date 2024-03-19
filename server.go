@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/devproje/simple-chat/config"
+	"github.com/devproje/simple-chat/database"
 	"github.com/devproje/simple-chat/middleware"
 
 	"github.com/devproje/plog/log"
@@ -25,7 +27,14 @@ func main() {
 	routes.Build(app)
 	go routes.HandleConnections()
 
-	err := app.Run(fmt.Sprintf(":%d", port))
+	config.Load()
+	err := database.Init()
+	if err != nil {
+		log.Errorln("database is not opened: %s", err.Error())
+		return
+	}
+
+	err = app.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalln("Failed to start server:", err)
 	}
