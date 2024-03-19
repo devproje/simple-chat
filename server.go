@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/devproje/simple-chat/middleware"
 
 	"github.com/devproje/plog/log"
 	"github.com/devproje/simple-chat/routes"
@@ -20,6 +21,7 @@ func init() {
 
 func main() {
 	app := gin.Default()
+	app.Use(middleware.CORS)
 	routes.Build(app)
 	go routes.HandleConnections()
 

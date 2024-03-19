@@ -1,8 +1,11 @@
 package model
 
-import "github.com/gorilla/websocket"
-
 type User struct {
-	Sock *websocket.Conn
 	Name string `json:"name"`
+}
+
+func NewUser() *User {
+	return &User{
+		Name: "",
+	}
 }
