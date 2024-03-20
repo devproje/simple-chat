@@ -28,13 +28,15 @@ func main() {
 	go routes.HandleConnections()
 
 	config.Load()
-	err := database.Init()
-	if err != nil {
-		log.Errorln("database is not opened: %s", err.Error())
-		return
+	if config.Load().Logging {
+		err := database.Init()
+		if err != nil {
+			log.Errorln("database is not opened: %s", err.Error())
+			return
+		}
 	}
 
-	err = app.Run(fmt.Sprintf(":%d", port))
+	err := app.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalln("Failed to start server:", err)
 	}
