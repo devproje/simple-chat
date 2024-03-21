@@ -32,6 +32,7 @@ func users(ctx *gin.Context) {
 
 	sort.Sort(u)
 	ctx.JSON(200, gin.H{
+		"len":   u.Len(),
 		"users": u,
 	})
 }
