@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/devproje/plog/level"
 	"github.com/devproje/simple-chat/config"
 	"github.com/devproje/simple-chat/database"
 	"github.com/devproje/simple-chat/middleware"
@@ -13,10 +14,19 @@ import (
 )
 
 var (
-	port int
+	port  int
+	debug bool
 )
 
 func init() {
+	gin.SetMode(gin.ReleaseMode)
+	log.SetLevel(level.Info)
+
+	if debug {
+		gin.SetMode(gin.DebugMode)
+		log.SetLevel(level.Trace)
+	}
+
 	flag.IntVar(&port, "port", 3000, "service port")
 	flag.Parse()
 }
