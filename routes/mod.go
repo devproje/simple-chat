@@ -23,6 +23,7 @@ func Build(app *gin.Engine) {
 	app.GET("/ws", ws)
 	v1 := app.Group("/v1")
 	{
-		v1.GET("users", users)
+		v1.GET("/users", users)
+		v1.GET("/server", server)
 	}
 }

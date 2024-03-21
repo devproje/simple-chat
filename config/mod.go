@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Logging  bool `json:"logging"`
-	Database struct {
+	Logging    bool   `json:"logging"`
+	ServerName string `json:"server_name"`
+	Database   struct {
 		Clusters   []string `json:"clusters"`
 		KeySpace   string   `json:"keyspace"`
 		Credential struct {
@@ -21,6 +22,7 @@ type Config struct {
 const filename = "config.json"
 const sample = `{
 	"logging": false,
+	"server_name": "Simple Chat",
 	"database": {
 		"clusters": [],
 		"keyspace": "",
