@@ -7,6 +7,9 @@ import (
 
 func server(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
-		"name": config.Load().ServerName,
+		"ok":             1,
+		"status":         200,
+		"name":           config.Load().ServerName,
+		"content_length": config.Load().ContentLength,
 	})
 }

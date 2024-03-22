@@ -51,12 +51,8 @@ func HandleConnections() {
 	for {
 		recv := <-broadcast
 		for client := range clients {
-			err := client.WriteJSON(recv)
-			if err != nil {
-				_ = client.Close()
-				mutex.Lock()
-				delete(clients, client)
-				mutex.Unlock()
+			if len(recv.Payload) > config.Load().ContentLength {
+				continue
 			}
 
 			if config.Load().Logging {
@@ -65,6 +61,14 @@ func HandleConnections() {
 					Author:  clients[client].Name,
 					Content: recv.Payload,
 				})
+			}
+
+			err := client.WriteJSON(recv)
+			if err != nil {
+				_ = client.Close()
+				mutex.Lock()
+				delete(clients, client)
+				mutex.Unlock()
 			}
 		}
 	}

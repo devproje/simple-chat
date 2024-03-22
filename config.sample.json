@@ -1,6 +1,7 @@
 {
     "logging": false,
     "server_name": "Simple Chat",
+    "content_length": 300,
     "database": {
         "clusters": [],
         "keyspace": "",
